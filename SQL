@@ -1,0 +1,328 @@
+/*
+============================================================
+HR Analytics SQL Project
+============================================================
+
+Description:
+This project contains 20 SQL queries performed on an HR employee dataset.
+It demonstrates core SQL concepts such as GROUP BY, HAVING,
+Subqueries, Correlated Subqueries, CASE statements,
+Window Functions, Ranking logic, and Percentage calculations.
+
+The goal is to analyze employee data to generate insights related
+to salary, attrition, department performance, experience, and promotions.
+This project is designed for SQL interview preparation and data analytics practice.
+============================================================
+*/
+
+
+-- ============================================================
+-- TABLE CREATION
+-- ============================================================
+
+CREATE TABLE HR_EMP (
+    Age NUMBER,
+    Attrition VARCHAR2(10),
+    BusinessTravel VARCHAR2(50),
+    DailyRate NUMBER,
+    Department VARCHAR2(50),
+    DistanceFromHome NUMBER,
+    Education NUMBER,
+    EducationField VARCHAR2(50),
+    EmployeeCount NUMBER,
+    EnvironmentSatisfaction NUMBER,
+    Gender VARCHAR2(10),
+    HourlyRate NUMBER,
+    JobInvolvement NUMBER,
+    JobLevel NUMBER,
+    JobRole VARCHAR2(50),
+    JobSatisfaction NUMBER,
+    MaritalStatus VARCHAR2(20),
+    MonthlyIncome NUMBER,
+    MonthlyRate NUMBER,
+    NumCompaniesWorked NUMBER,
+    OverTime VARCHAR2(10),
+    PercentSalaryHike NUMBER,
+    PerformanceRating NUMBER,
+    RelationshipSatisfaction NUMBER,
+    StandardHours NUMBER,
+    StockOptionLevel NUMBER,
+    TotalWorkingYears NUMBER,
+    TrainingTimesLastYear NUMBER,
+    WorkLifeBalance NUMBER,
+    YearsAtCompany NUMBER,
+    YearsInCurrentRole NUMBER,
+    YearsSinceLastPromotion NUMBER,
+    YearsWithCurrManager NUMBER
+);
+
+
+-- ============================================================
+-- 1. Department-wise Employee Count
+-- This query calculates total employees in each department.
+-- It uses GROUP BY to aggregate data department-wise.
+-- ============================================================
+
+SELECT Department, COUNT(*) AS Total_Employees
+FROM HR_EMP
+GROUP BY Department;
+
+
+-- ============================================================
+-- 2. Department-wise Average Monthly Income
+-- This query calculates average salary per department.
+-- ROUND function is used to format the result to 2 decimals.
+-- ============================================================
+
+SELECT Department,
+       ROUND(AVG(MonthlyIncome), 2) AS Avg_Salary
+FROM HR_EMP
+GROUP BY Department;
+
+
+-- ============================================================
+-- 3. Attrition Rate by Department
+-- This query calculates number and percentage of employees who left.
+-- It uses CASE inside COUNT for conditional aggregation.
+-- ============================================================
+
+SELECT Department,
+       COUNT(CASE WHEN Attrition = 'Yes' THEN 1 END) AS Attrition_Count,
+       COUNT(*) AS Total_Employees,
+       ROUND(
+           COUNT(CASE WHEN Attrition = 'Yes' THEN 1 END) * 100.0 / COUNT(*), 2
+       ) AS Attrition_Percentage
+FROM HR_EMP
+GROUP BY Department;
+
+
+-- ============================================================
+-- 4. Employees Earning More Than Department Average
+-- This query finds employees earning more than their department average.
+-- It uses a correlated subquery for comparison.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP e
+WHERE MonthlyIncome >
+      (SELECT AVG(MonthlyIncome)
+       FROM HR_EMP
+       WHERE Department = e.Department);
+
+
+-- ============================================================
+-- 5. Top 5 Highest Paid Employees
+-- This query retrieves top 5 highest paid employees.
+-- It uses ORDER BY with ROWNUM in Oracle.
+-- ============================================================
+
+SELECT *
+FROM (
+    SELECT *
+    FROM HR_EMP
+    ORDER BY MonthlyIncome DESC
+)
+WHERE ROWNUM <= 5;
+
+
+-- ============================================================
+-- 6. Employees With More Than 5 Years Experience AND Overtime
+-- This query filters employees with >5 years experience.
+-- It also ensures they are working overtime.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP
+WHERE TotalWorkingYears > 5
+AND OverTime = 'Yes';
+
+
+-- ============================================================
+-- 7. Count of Employees by Gender and Department
+-- This query groups employees by department and gender.
+-- It shows gender distribution within departments.
+-- ============================================================
+
+SELECT Department, Gender, COUNT(*) AS Total
+FROM HR_EMP
+GROUP BY Department, Gender
+ORDER BY Department;
+
+
+-- ============================================================
+-- 8. Average Salary by Job Role (Only if Avg > 5000)
+-- This query calculates average salary per job role.
+-- HAVING clause filters roles with avg salary > 5000.
+-- ============================================================
+
+SELECT JobRole,
+       ROUND(AVG(MonthlyIncome),2) AS Avg_Salary
+FROM HR_EMP
+GROUP BY JobRole
+HAVING AVG(MonthlyIncome) > 5000;
+
+
+-- ============================================================
+-- 9. Employees Who Never Got Promotion
+-- This query finds employees with no promotion history.
+-- It checks YearsSinceLastPromotion = 0.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP
+WHERE YearsSinceLastPromotion = 0;
+
+
+-- ============================================================
+-- 10. Rank Employees by Salary Within Each Department
+-- This query ranks employees based on salary within department.
+-- It uses correlated subquery ranking logic.
+-- ============================================================
+
+SELECT 
+       e.Department,
+       e.MonthlyIncome,
+       (
+         SELECT COUNT(DISTINCT e2.MonthlyIncome)
+         FROM HR_EMP e2
+         WHERE e2.Department = e.Department
+         AND e2.MonthlyIncome > e.MonthlyIncome
+       ) + 1 AS Salary_Rank
+FROM HR_EMP e;
+
+
+-- ============================================================
+-- 11. Second Highest Salary
+-- This query finds the second highest salary in the company.
+-- It excludes the maximum salary using a subquery.
+-- ============================================================
+
+SELECT MAX(MonthlyIncome) AS Second_Highest
+FROM HR_EMP
+WHERE MonthlyIncome < (SELECT MAX(MonthlyIncome) FROM HR_EMP);
+
+
+-- ============================================================
+-- 12. Employees Who Worked in More Than 3 Companies
+-- This query identifies employees with diverse work history.
+-- It filters employees who worked in more than 3 companies.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP
+WHERE NumCompaniesWorked > 3;
+
+
+-- ============================================================
+-- 13. Age Group Categorization
+-- This query categorizes employees into age groups.
+-- CASE statement is used for dynamic classification.
+-- ============================================================
+
+SELECT 
+    CASE 
+        WHEN Age < 30 THEN 'Young'
+        WHEN Age BETWEEN 30 AND 40 THEN 'Mid Age'
+        ELSE 'Senior'
+    END AS Age_Group,
+    COUNT(*) AS Total
+FROM HR_EMP
+GROUP BY 
+    CASE 
+        WHEN Age < 30 THEN 'Young'
+        WHEN Age BETWEEN 30 AND 40 THEN 'Mid Age'
+        ELSE 'Senior'
+    END;
+
+
+-- ============================================================
+-- 14. Department with Highest Average Salary
+-- This query finds department with highest average salary.
+-- It orders departments by AVG salary and selects top one.
+-- ============================================================
+
+SELECT *
+FROM (
+    SELECT Department
+    FROM HR_EMP
+    GROUP BY Department
+    ORDER BY AVG(MonthlyIncome) DESC
+)
+WHERE ROWNUM = 1;
+
+
+-- ============================================================
+-- 15. Employees With Highest Salary in Each Department
+-- This query retrieves top paid employees per department.
+-- It uses correlated subquery with MAX salary.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP e
+WHERE MonthlyIncome = (
+    SELECT MAX(MonthlyIncome)
+    FROM HR_EMP
+    WHERE Department = e.Department
+);
+
+
+-- ============================================================
+-- 16. Total Employees Who Do Overtime vs Not
+-- This query compares overtime vs non-overtime employees.
+-- It uses GROUP BY to count both categories.
+-- ============================================================
+
+SELECT OverTime, COUNT(*) AS Total
+FROM HR_EMP
+GROUP BY OverTime;
+
+
+-- ============================================================
+-- 17. Employees with Above Average Performance Rating
+-- This query finds employees with higher than avg rating.
+-- It compares rating with overall average.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP
+WHERE PerformanceRating >
+      (SELECT AVG(PerformanceRating) FROM HR_EMP);
+
+
+-- ============================================================
+-- 18. Employees With More Experience Than Their Manager Tenure
+-- This query identifies highly experienced employees.
+-- It compares total working years with manager tenure.
+-- ============================================================
+
+SELECT *
+FROM HR_EMP
+WHERE TotalWorkingYears > YearsWithCurrManager;
+
+
+-- ============================================================
+-- 19. Percentage of Employees by Education Field
+-- This query calculates percentage distribution by education field.
+-- It divides category count by total employee count.
+-- ============================================================
+
+SELECT EducationField,
+       ROUND(COUNT(*) * 100.0 / 
+            (SELECT COUNT(*) FROM HR_EMP), 2) AS Percentage
+FROM HR_EMP
+GROUP BY EducationField;
+
+
+-- ============================================================
+-- 20. Running Total of Salary by Department
+-- This query calculates cumulative salary within each department.
+-- It uses SUM() OVER() window function.
+-- ============================================================
+
+SELECT Department,
+       MonthlyIncome,
+       SUM(MonthlyIncome) OVER (
+           PARTITION BY Department 
+           ORDER BY MonthlyIncome
+       ) AS Running_Total
+FROM HR_EMP;
