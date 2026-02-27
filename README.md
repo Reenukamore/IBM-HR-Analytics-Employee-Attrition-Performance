@@ -1,58 +1,55 @@
-**Project Title**  
-IBM HR Analytics Employee Attrition & Performance
+# HR Analytics Dashboard – Employee Attrition Analysis
 
-**Domain**  
-Human Resources Analytics | Data Analysis
+End-to-end HR analytics project focused on understanding and predicting employee attrition.
 
-**Difficulty Level**  
-Intermediate
+- **Data cleaning** → Excel  
+- **Database & analysis** → Oracle SQL + PL/SQL  
+- **Visualization & interactivity** → Power BI
 
-**Tools Used**  
-- Excel (Data Cleaning & Initial Exploration)  
-- SQL Developer (Oracle) – Advanced querying & aggregations  
-- Power BI – Interactive Dashboard & Visualizations
+## Problem Statement
+- Identify the key factors contributing to employee attrition.
+- Analyze attrition trends across departments, job roles, and salary levels.
+- Examine how experience, age group, and demographics impact turnover.
+- Measure overall attrition rate and identify high-risk employee segments.
 
-**Dataset**  
-Fictional HR dataset created by IBM data scientists. 
-Contains 1,470 employee records with 35 features including age, job role, monthly income, job satisfaction, work-life balance, distance from home, overtime, etc.
+## Technologies Stack
 
-## Business Problem
+- Oracle Database (SQL & PL/SQL)  
+- Microsoft Excel (data cleaning)  
+- Microsoft Power BI (interactive dashboard)  
+- Dataset: IBM HR Employee Attrition & Performance (classic dataset)
 
-Companies face high employee turnover (attrition), which increases recruitment & training costs, disrupts team dynamics, and causes loss of valuable knowledge.  
-This project uncovers **why employees leave** and helps suggest retention strategies.
+## Key SQL Queries (20)
 
-## Objectives
+| #  | Topic                                      | Technique used                     |
+|----|--------------------------------------------|-------------------------------------|
+| 1  | Employees per Department                   | GROUP BY                            |
+| 2  | Avg Salary per Department                  | ROUND(AVG())                        |
+| 3  | Attrition count & % per Department         | CASE + conditional aggregation      |
+| 4  | Employees above dept average salary        | Correlated subquery                 |
+| 5  | Top 5 highest paid employees               | ORDER BY + ROWNUM                   |
+| 6  | >5 years exp + Overtime = Yes              | Simple WHERE                        |
+| 7  | Gender distribution by Department          | GROUP BY multiple columns           |
+| 8  | Avg salary by JobRole (HAVING >5000)       | HAVING clause                       |
+| 9  | Employees never promoted                   | YearsSinceLastPromotion = 0         |
+| 10 | Salary rank inside each department         | Correlated COUNT(DISTINCT)          |
+| 11 | Second highest salary company-wide         | Subquery                            |
+| 12 | Employees worked in >3 companies           | Simple filter                       |
+| 13 | Age group buckets & count                  | CASE WHEN                           |
+| 14 | Department with highest avg salary         | ORDER BY + ROWNUM                   |
+| 15 | Highest paid employee per department       | Correlated MAX()                    |
+| 16 | Overtime Yes vs No count                   | GROUP BY                            |
+| 17 | Employees with above-average Performance   | Subquery                            |
+| 18 | TotalWorkingYears > YearsWithCurrManager   | Comparison                          |
+| 19 | % distribution by EducationField           | COUNT / total subquery              |
+| 20 | Running total salary per department        | SUM() OVER (PARTITION BY … ORDER BY)|
 
-1. Calculate current **attrition rate** and analyze distribution by demographics (age, gender, department, job role, education, etc.).  
-2. Identify **key drivers** of attrition:  
-   - Job satisfaction (JobSatisfaction, EnvironmentSatisfaction, RelationshipSatisfaction)  
-   - Work-life balance & job involvement  
-   - Salary & benefits (MonthlyIncome, PercentSalaryHike, StockOptionLevel)  
-   - Other factors: OverTime, DistanceFromHome, YearsAtCompany, etc.  
-3. Build an **interactive Power BI dashboard** to explore insights visually.
+## PL/SQL Components
 
-## Project Workflow
+```sql
+-- Procedure: overall attrition summary
+EXEC Calculate_Attrition_Rate;
 
-1. **Data Cleaning** – Excel  
-   - Removed duplicates (none found)  
-   - Checked & handled missing values (none)  
-   - Validated data types & ranges  
-
-2. **Data Analysis with SQL** – Oracle SQL Developer  
-   - Calculated attrition rate  
-   - Aggregations: avg income by education/attrition, count by job role/department, etc.  
-   - Breakdowns: distance from home by job role & attrition  
-
-3. **Visualization & Dashboard** – Power BI  
-   - Interactive dashboard with slicers (department, job role, gender, etc.)  
-   - Key visuals: attrition rate card, age distribution, income vs education, factors comparison  
-
-## Key Findings (Sample Insights)
-
-- Overall **attrition rate** ≈ **16.12%**  
-- Employees who work **OverTime** have significantly higher attrition  
-- Lower **JobSatisfaction**, **EnvironmentSatisfaction**, and **WorkLifeBalance** strongly correlate with leaving  
-- Younger employees (20–30 age group) and those with **longer distance from home** show higher turnover  
-- Single employees and certain job roles (e.g., Sales Representative, Laboratory Technician) have elevated risk
-
-
+-- Function: attrition count by department
+SELECT Get_Department_Attrition('Sales') FROM DUAL;
+SELECT Get_Department_Attrition('Research & Development') FROM DUAL;
